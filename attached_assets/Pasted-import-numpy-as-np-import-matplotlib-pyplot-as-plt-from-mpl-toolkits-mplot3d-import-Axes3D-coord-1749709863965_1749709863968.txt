@@ -1,0 +1,62 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+#coordenadas de la curvatura
+def espacio_tiempo_deformado_logaritmico(masa):
+    G = 6.67430e-11  # constante
+
+    # crear la malla
+    x = np.linspace(-50, 50, 100)
+    y = np.linspace(-50, 50, 100)
+    X, Y = np.meshgrid(x, y)
+
+    # Calcular distáncia radial
+    R = np.sqrt(X**2 + Y**2) + 1e-10  # Lo uktimo para evitar dividir entre 0
+
+    # Calcular la curvatura
+    Z = - (G * masa) / (R)
+
+    # Transformarlo en escala logarítmica para la visualización y probe,as anterirores
+    Z_log = np.log(np.abs(Z) + 1e-10)  # Lo útimo es para evitar (log(0))
+
+    # Normalización
+    Z_log_normalized = Z_log - np.min(Z_log)  # Restar por el valor minimo para que el valor mas pequeñpo sea 0
+    Z_log_normalized /= np.max(Z_log_normalized)  # Escalar de 0 a 1
+
+    # Enfatizar la curvatura (por los problemas que hemos tenido anteriormente)
+    Z_log_normalized *= (masa / 1e30)
+
+    return X, Y, Z_log_normalized#te da las corrdenadas de la curvatura
+
+#expresión de la cuvatura en el grafico:
+def plot_deformacion_logaritmica(masa):
+    #utilizamos los resultados de la anterior función (sobre la curvatura)
+    X, Y, Z_log = espacio_tiempo_deformado_logaritmico(masa)
+
+    fig = plt.figure(figsize=(10, 8)) #añadir una figura 8x10 que respresenta el cuerpo
+    ax = fig.add_subplot(111, projection='3d') #se añade el eje 3d a partir de una proyección que respresenta la curvatura
+
+    # se grafica 3dimensionalmente utilizando las coordenadas (x,y) y la curvatira en (z)
+    surf = ax.plot_surface(X, Y, Z_log, cmap='viridis', alpha=0.8)#se le da color y tranparencia
+
+    # Configuración gráfico
+    ax.set_title(f'Espacio tiempo deformado por una masa = {masa} kg (Escala logaritmica)')
+    ax.set_xlabel('X (km)')
+    ax.set_ylabel('Y (km)')
+    ax.set_zlabel('Curvatura (log)')
+    ax.set_xlim([-50, 50])
+    ax.set_ylim([-50, 50])
+
+    # Se establece la escala lineal para el eje Z y se ajustan los límites de Z entre -1 y 1 para mejorar la visibilidad de los valores.
+    ax.set_zscale('linear')
+    ax.set_zlim(-1, 1)
+
+
+    ax.view_init(elev=30, azim=30)  # Ajustar el angulo
+
+    plt.colorbar(surf, ax=ax, shrink=0.5, aspect=5)  # coloritos
+    plt.show()
+
+
+masa_usuario = float(input("Pon la masa de un cuerpo (kg): "))
+plot_deformacion_logaritmica(masa_usuario)
